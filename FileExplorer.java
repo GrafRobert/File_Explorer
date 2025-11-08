@@ -113,9 +113,7 @@ public class FileExplorer {
         }
 
         //sortare alfabetica
-        Arrays.sort(files, Comparator
-                .comparing((File f) -> !f.isDirectory())
-                .thenComparing(f -> f.getName().toLowerCase()));
+        Arrays.sort(files, Comparator.comparing(f -> f.getName().toLowerCase()));
 
         for (File f : files) {
             model.addElement(f);
