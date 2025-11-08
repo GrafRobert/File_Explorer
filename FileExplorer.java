@@ -105,7 +105,7 @@ public class FileExplorer {
         pathLabel.setText(" Path: " + current.getAbsolutePath());
         model.clear();
 
-        File[] files = current.listFiles();
+        File[] files = current.listFiles(f -> f.isDirectory() && !f.getName().startsWith(".") && !f.isHidden());
         if (files == null) {
 
             JOptionPane.showMessageDialog(frame, "Nu se poate lista directorul");
