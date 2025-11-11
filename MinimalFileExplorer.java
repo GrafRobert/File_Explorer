@@ -24,10 +24,11 @@ public class MinimalFileExplorer extends Frame {
     }
 
     private void jbInit() {
-        this.setSize(700, 480);
+        this.setSize(700, 400);
         this.setResizable(false);
         this.setLayout(null);
         this.setBackground(new Color(240, 240, 240));
+        this.setLocationRelativeTo(null);
 
         dirList.setMultipleMode(false);
         dirList.setBounds(20, 60, 640, 320);
