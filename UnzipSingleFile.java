@@ -6,36 +6,19 @@ import java.io.BufferedOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-/**
- * Versiune organizată a utilitarului de unzip care urmărește structura și stilul ZipSingleFile.
- * - BUFFER constant
- * - metodă publică unzipFile(...) care aruncă IOException (caller-ul tratează)
- * - overload unzipFile(zipPath) care folosește defaultDestDirFor(...)
- * - defaultDestDirFor(...) similar cu defaultZipPathFor(...) din ZipSingleFile
- *
- * Observații:
- * - Extrage toate intrările din arhivă (fișiere și directoare).
- * - Protecție împotriva "zip slip" prin verificarea căii canonice.
- * - Simplu, buffer 1024, try-with-resources.
- */
+
 public class UnzipSingleFile {
 
     private static final int BUFFER = 1024;
 
-    /**
-     * Dezarchivează toată arhiva zipPath în directorul destDir.
-     * Aruncă IOException pentru ca apelantul (UI) să trateze erorile.
-     *
-     * @param zipPath calea arhivei .zip
-     * @param destDir directorul în care se vor extrage fișierele (se va crea dacă nu există)
-     * @throws IOException la orice eroare I/O sau la detectarea unei intrări care iese din destDir
-     */
+    // Metoda principală pentru dezarhivare
     public static void unzipFile(String zipPath, String destDir) throws IOException {
         File zipFile = new File(zipPath);
         if (!zipFile.exists() || !zipFile.isFile()) {
             throw new IOException("Zip file does not exist: " + zipPath);
         }
 
+        // Crearea directorului destinație
         File dest = new File(destDir);
         if (!dest.exists()) {
             if (!dest.mkdirs()) {
@@ -43,34 +26,41 @@ public class UnzipSingleFile {
             }
         }
 
+        // Obține calea canonică pentru destinație
         String destCanonical = dest.getCanonicalPath();
 
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
             ZipEntry entry;
             byte[] buffer = new byte[BUFFER];
             while ((entry = zis.getNextEntry()) != null) {
+                // Obține numele intrării curente din arhivă
                 String entryName = entry.getName();
+
+                // Creăm direct intrarea în structura destinației fără directoare redundante
                 File outFile = new File(dest, entryName);
 
-                // Protecție zip-slip: calea rezultată trebuie să fie în interiorul destDir
+                // Protecție zip-slip
                 String outCanonical = outFile.getCanonicalPath();
-                if (!outCanonical.equals(destCanonical) && !outCanonical.startsWith(destCanonical + File.separator)) {
+                if (!outCanonical.startsWith(destCanonical + File.separator)) {
                     zis.closeEntry();
                     throw new IOException("Entry is outside of the target dir: " + entryName);
                 }
 
                 if (entry.isDirectory()) {
+                    // Creează directorul doar o singură dată, fără redundanțe
                     if (!outFile.exists() && !outFile.mkdirs()) {
                         zis.closeEntry();
                         throw new IOException("Could not create directory: " + outFile.getAbsolutePath());
                     }
                 } else {
+                    // Creează părintele fișierului dacă nu există și evită directoare redundante
                     File parent = outFile.getParentFile();
                     if (parent != null && !parent.exists() && !parent.mkdirs()) {
                         zis.closeEntry();
                         throw new IOException("Could not create directory: " + parent.getAbsolutePath());
                     }
 
+                    // Scrie conținutul fișierului
                     try (FileOutputStream fos = new FileOutputStream(outFile);
                          BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER)) {
                         int len;
@@ -85,21 +75,13 @@ public class UnzipSingleFile {
         }
     }
 
-    /**
-     * Overload: dezarchivează arhiva zipPath într-un director implicit (same-folder + nume fără .zip).
-     *
-     * @param zipPath calea arhivei .zip
-     * @throws IOException
-     */
+    // Versiune alternativă care determină o destinație implicită
     public static void unzipFile(String zipPath) throws IOException {
         String dest = defaultDestDirFor(zipPath);
         unzipFile(zipPath, dest);
     }
 
-    /**
-     * Director implicit pentru extragere: același folder ca arhiva și un subfolder cu numele arhivei (fără .zip)
-     * Ex: /path/Folder.zip -> /path/Folder
-     */
+    // Creează un director implicit bazat pe numele arhivei
     public static String defaultDestDirFor(String zipFilePath) {
         File z = new File(zipFilePath);
         String name = z.getName();

@@ -5,30 +5,12 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-/**
- * Versiune simplă și ușoară a utilitarului de zip care
- * suportă atât fișiere individuale cât și directoare (recursiv).
- *
- * Exemplu de utilizare:
- *   ZipSingleFile.zipFile("/cale/catre/Algoritmi.pdf", "/cale/catre/Algoritmi.zip");
- *   ZipSingleFile.zipFile("/cale/catre/folder", "/cale/catre/folder.zip");
- *
- * Observații:
- * - Păstrează structura relativă în arhivă (dacă arhivezi un folder,
- *   intrările vor avea prefixul numelui folderului).
- * - Folosește buffer 1024 (simplu, ca în screenshot).
- * - Metoda aruncă IOException; apelantul (UI) trebuie să trateze excepția.
- */
+
 public class ZipSingleFile {
 
     private static final int BUFFER = 1024;
 
-    /**
-     * Arhivează fie un fișier, fie un director (recursiv) într-un .zip.
-     * @param inputPath fișierul sau directorul de arhivat
-     * @param outputZipPath fișierul zip rezultat
-     * @throws IOException în caz de eroare I/O
-     */
+
     public static void zipFile(String inputPath, String outputZipPath) throws IOException {
         File input = new File(inputPath);
         if (!input.exists()) {
@@ -83,9 +65,7 @@ public class ZipSingleFile {
         }
     }
 
-    /**
-     * Helper pentru cale zip implicită (același folder, același nume baza + .zip)
-     */
+
     public static String defaultZipPathFor(String inputFilePath) {
         File in = new File(inputFilePath);
         String name = in.getName();
